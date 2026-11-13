@@ -1,0 +1,1006 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IB Compass — DP Work & Deadline Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          IB
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-none">IB Compass</h1>
+          <p class="text-xs text-slate-500 mt-0.5">6 Subjects • 3 Core • AI DP Advisor</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+        <button onclick="openAiStudyPlan()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+          AI Study Plan
+        </button>
+
+        <button onclick="openSyllabusExtractor()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+          Extract Deadlines
+        </button>
+
+        <button onclick="openApiKeyModal()" id="api-key-btn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+          <span id="api-status-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+          API Key
+        </button>
+
+        <button onclick="toggleSampleData()" id="sample-btn" class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition">
+          Clear Sample Data
+        </button>
+
+        <button onclick="openAssignmentModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Add Task
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 flex-1">
+
+    <!-- Overview Stats -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Pending Tasks</p>
+        <p id="stat-pending" class="text-2xl font-bold text-slate-900 mt-1">0</p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Due Within 7 Days</p>
+        <p id="stat-due-soon" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Subject Balance</p>
+        <p id="stat-hl-count" class="text-2xl font-bold text-indigo-600 mt-1">3 HL / 3 SL</p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">DP Core Progress</p>
+        <p id="stat-core-pct" class="text-2xl font-bold text-emerald-600 mt-1">0%</p>
+      </div>
+    </section>
+
+    <!-- 6 DP Subjects -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">6 Diploma Subjects</h2>
+          <p class="text-xs text-slate-500">Click the pencil to customize subject &amp; HL/SL level, or + to add an assignment.</p>
+        </div>
+      </div>
+      <div id="subjects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- 3 Core Components -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">3 DP Core Components</h2>
+          <p class="text-xs text-slate-500">Track official IB milestones across Theory of Knowledge, Extended Essay, and CAS.</p>
+        </div>
+      </div>
+      <div id="core-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- Upcoming Assignments & Deadlines -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Upcoming Deadlines &amp; Deliverables</h2>
+          <p class="text-xs text-slate-500">Sorted chronologically by due date. Use AI Breakdown to split major IAs or essays.</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="flex flex-wrap items-center gap-2">
+          <input id="search-input" type="text" placeholder="Search tasks..." oninput="renderDeadlines()" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-40 sm:w-48" />
+
+          <select id="filter-category" onchange="renderDeadlines()" class="px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="ALL">All Categories</option>
+            <option value="SUBJECTS_ONLY">6 Subjects Only</option>
+            <option value="CORE_ONLY">3 Core Only</option>
+            <optgroup label="Individual Subjects" id="filter-subject-options"></optgroup>
+            <optgroup label="Core">
+              <option value="TOK">TOK</option>
+              <option value="EE">Extended Essay (EE)</option>
+              <option value="CAS">CAS</option>
+            </optgroup>
+          </select>
+
+          <select id="filter-status" onchange="renderDeadlines()" class="px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="PENDING">Pending</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="ALL">All Statuses</option>
+          </select>
+
+          <select id="filter-priority" onchange="renderDeadlines()" class="px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="ALL">All Priorities</option>
+            <option value="High">High Priority</option>
+            <option value="Medium">Medium Priority</option>
+            <option value="Low">Low Priority</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="deadlines-list" class="divide-y divide-slate-100"></div>
+    </section>
+
+  </main>
+
+  <!-- Add / Edit Assignment Modal -->
+  <div id="assignment-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="modal-title" class="text-base font-bold text-slate-900">Add Assignment / Deadline</h3>
+        <button onclick="closeModal('assignment-modal')" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+      </div>
+      <form id="assignment-form" onsubmit="saveAssignment(event)" class="space-y-4">
+        <input type="hidden" id="inp-id" />
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Deliverable Title</label>
+          <input id="inp-title" type="text" required placeholder="e.g., Physics IA First Draft" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Subject / Core</label>
+            <select id="inp-category" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Due Date</label>
+            <input id="inp-due" type="date" required class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Priority</label>
+          <select id="inp-priority" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="High">High (IA / Exam / Official IB Deadline)</option>
+            <option value="Medium" selected>Medium (Homework / Draft / Quiz)</option>
+            <option value="Low">Low (Reading / Notes / Revision)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Notes / Rubric Details (Optional)</label>
+          <textarea id="inp-notes" rows="2" placeholder="Word count, rubric criteria, or teacher instructions..." class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('assignment-modal')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg shadow-sm">Save Deliverable</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Subject Modal -->
+  <div id="subject-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-slate-900">Edit DP Subject</h3>
+        <button onclick="closeModal('subject-modal')" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+      </div>
+      <form onsubmit="saveSubject(event)" class="space-y-4">
+        <input type="hidden" id="sub-id" />
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Subject Name</label>
+          <input id="sub-name" type="text" required class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Level</label>
+          <select id="sub-level" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="HL">Higher Level (HL)</option>
+            <option value="SL">Standard Level (SL)</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('subject-modal')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg">Update Subject</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- AI Advisor Modal -->
+  <div id="ai-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl border border-slate-200 max-h-[85vh] flex flex-col">
+      <div class="flex items-start justify-between gap-4 pb-3 border-b border-slate-100">
+        <div>
+          <h3 id="ai-modal-title" class="text-base font-bold text-slate-900">AI DP Study Advisor</h3>
+          <p id="ai-modal-subtitle" class="text-xs text-slate-500 mt-0.5"></p>
+        </div>
+        <button onclick="closeModal('ai-modal')" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+      <div id="ai-modal-body" class="py-4 overflow-y-auto custom-scroll flex-1 text-sm text-slate-700 space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div id="apikey-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-slate-900">Gemini API Key</h3>
+        <button onclick="closeModal('apikey-modal')" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+      </div>
+      <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+        Paste your free Gemini API key from <strong>Google AI Studio</strong> to activate AI Task Breakdowns, Study Plans, and Syllabus Extraction. Your key is saved only in your browser's local storage.
+      </p>
+      <input id="inp-apikey" type="password" placeholder="AIzaSy..." class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4" />
+      <div class="flex justify-between items-center">
+        <button type="button" onclick="clearApiKey()" class="text-xs text-rose-600 hover:underline">Remove Key</button>
+        <div class="flex gap-2">
+          <button type="button" onclick="closeModal('apikey-modal')" class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+          <button type="button" onclick="saveApiKey()" class="px-4 py-1.5 text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg">Save Key</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Undo Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg hidden items-center gap-3 text-xs font-medium z-50">
+    <span id="toast-msg">Task deleted</span>
+    <button id="toast-undo" onclick="undoDelete()" class="text-indigo-400 hover:text-indigo-300 font-bold underline">Undo</button>
+  </div>
+
+  <script>
+    // Optional: Paste your Gemini API key here if you prefer hardcoding it locally
+    const DEFAULT_API_KEY = "";
+
+    const STORAGE_KEY = "ib_compass_data_v1";
+    const API_STORAGE_KEY = "ib_compass_gemini_key";
+
+    function addDaysISO(days) {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    const DEFAULT_STATE = {
+      hasSampleData: true,
+      subjects: [
+        { id: "G1", group: "Group 1", name: "English A: Lang & Lit", level: "HL", color: "indigo" },
+        { id: "G2", group: "Group 2", name: "Spanish B", level: "SL", color: "sky" },
+        { id: "G3", group: "Group 3", name: "Economics", level: "HL", color: "amber" },
+        { id: "G4", group: "Group 4", name: "Physics", level: "HL", color: "emerald" },
+        { id: "G5", group: "Group 5", name: "Math: Analysis & Approaches", level: "SL", color: "violet" },
+        { id: "G6", group: "Group 6", name: "Visual Arts", level: "SL", color: "rose" }
+      ],
+      core: {
+        TOK: {
+          title: "Theory of Knowledge (TOK)",
+          badge: "TOK",
+          color: "purple",
+          milestones: [
+            { id: "tok1", text: "Exhibition Objects & Prompt Selected", done: true },
+            { id: "tok2", text: "TOK Exhibition Commentary (950 words)", done: true },
+            { id: "tok3", text: "Prescribed Title & Essay Outline", done: false },
+            { id: "tok4", text: "TOK Essay Final Draft (1,600 words)", done: false }
+          ]
+        },
+        EE: {
+          title: "Extended Essay (EE)",
+          badge: "EE",
+          color: "blue",
+          milestones: [
+            { id: "ee1", text: "Research Question & Supervisor Approved", done: true },
+            { id: "ee2", text: "First Reflection Session (RPPF #1)", done: true },
+            { id: "ee3", text: "Complete First Draft (4,000 words)", done: false },
+            { id: "ee4", text: "Viva Voce & Final RPPF #3", done: false }
+          ]
+        },
+        CAS: {
+          title: "Creativity, Activity, Service",
+          badge: "CAS",
+          color: "teal",
+          milestones: [
+            { id: "cas1", text: "1st CAS Interview & Portfolio Setup", done: true },
+            { id: "cas2", text: "Balanced Creativity, Activity & Service Logs", done: false },
+            { id: "cas3", text: "Collaborative CAS Project (1+ Month)", done: false },
+            { id: "cas4", text: "7 Learning Outcomes Evidenced", done: false }
+          ]
+        }
+      },
+      assignments: [
+        { id: "a1", title: "Physics IA: Methodology & Raw Data Collection", category: "G4", due: addDaysISO(2), priority: "High", notes: "Include uncertainty propagation and 5 trials per independent variable.", completed: false, isSample: true },
+        { id: "a2", title: "TOK Essay First Draft (1,600 words)", category: "TOK", due: addDaysISO(5), priority: "High", notes: "Focus on two AOKs with clear counterclaims.", completed: false, isSample: true },
+        { id: "a3", title: "Economics Micro IA Commentary", category: "G3", due: addDaysISO(9), priority: "High", notes: "Max 800 words based on a recent news article (< 1 year old).", completed: false, isSample: true },
+        { id: "a4", title: "Math AA Exploration Topic Proposal", category: "G5", due: addDaysISO(14), priority: "Medium", notes: "1-page outline of mathematical tools to be used.", completed: false, isSample: true },
+        { id: "a5", title: "Extended Essay Literature Review Section", category: "EE", due: addDaysISO(-1), priority: "High", notes: "Synthesize at least 8 academic sources.", completed: false, isSample: true },
+        { id: "a6", title: "Spanish B Listening & Reading Practice Paper", category: "G2", due: addDaysISO(6), priority: "Low", notes: "Complete Paper 2 past exam section.", completed: true, isSample: true }
+      ]
+    };
+
+    let state = loadState();
+    let lastDeleted = null;
+    let toastTimer = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) { console.error(e); }
+      return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll();
+    }
+
+    function getApiKey() {
+      return localStorage.getItem(API_STORAGE_KEY) || DEFAULT_API_KEY || "";
+    }
+
+    function updateApiStatusUI() {
+      const dot = document.getElementById("api-status-dot");
+      if (getApiKey()) {
+        dot.className = "w-2 h-2 rounded-full bg-emerald-500";
+      } else {
+        dot.className = "w-2 h-2 rounded-full bg-amber-400";
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function getCategoryLabel(catId) {
+      if (catId === "TOK") return "TOK";
+      if (catId === "EE") return "Extended Essay";
+      if (catId === "CAS") return "CAS";
+      const sub = state.subjects.find(s => s.id === catId);
+      return sub ? `${sub.name} (${sub.level})` : catId;
+    }
+
+    function renderAll() {
+      updateApiStatusUI();
+      renderStats();
+      renderSubjects();
+      renderCore();
+      populateCategorySelects();
+      renderDeadlines();
+
+      const sampleBtn = document.getElementById("sample-btn");
+      sampleBtn.textContent = state.hasSampleData ? "Clear Sample Data" : "Restore Sample Data";
+    }
+
+    function renderStats() {
+      const pending = state.assignments.filter(a => !a.completed);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const dueSoon = pending.filter(a => {
+        const d = new Date(a.due + "T00:00:00");
+        const diffDays = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+        return diffDays <= 7;
+      });
+
+      const hlCount = state.subjects.filter(s => s.level === "HL").length;
+      const slCount = state.subjects.length - hlCount;
+
+      let totalMilestones = 0;
+      let doneMilestones = 0;
+      Object.values(state.core).forEach(c => {
+        totalMilestones += c.milestones.length;
+        doneMilestones += c.milestones.filter(m => m.done).length;
+      });
+      const corePct = totalMilestones ? Math.round((doneMilestones / totalMilestones) * 100) : 0;
+
+      document.getElementById("stat-pending").textContent = pending.length;
+      document.getElementById("stat-due-soon").textContent = dueSoon.length;
+      document.getElementById("stat-hl-count").textContent = `${hlCount} HL / ${slCount} SL`;
+      document.getElementById("stat-core-pct").textContent = `${corePct}%`;
+    }
+
+    function renderSubjects() {
+      const grid = document.getElementById("subjects-grid");
+      grid.innerHTML = state.subjects.map(sub => {
+        const pendingCount = state.assignments.filter(a => a.category === sub.id && !a.completed).length;
+        const badgeStyle = sub.level === "HL"
+          ? "bg-indigo-100 text-indigo-700 border-indigo-200"
+          : "bg-slate-100 text-slate-600 border-slate-200";
+
+        return `
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:border-indigo-300 transition flex flex-col justify-between">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">${escapeHtml(sub.id)} • ${escapeHtml(sub.group)}</span>
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-md border ${badgeStyle}">${escapeHtml(sub.level)}</span>
+                </div>
+                <h3 class="text-sm font-bold text-slate-900 mt-1.5">${escapeHtml(sub.name)}</h3>
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="openSubjectModal('${sub.id}')" title="Edit Subject" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z"/></svg>
+                </button>
+                <button onclick="openAssignmentModal(null, '${sub.id}')" title="Add Deadline for ${escapeHtml(sub.name)}" class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-slate-500">${pendingCount} pending ${pendingCount === 1 ? "task" : "tasks"}</span>
+              <button onclick="filterByCategory('${sub.id}')" class="font-semibold text-indigo-600 hover:text-indigo-800">View &rarr;</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderCore() {
+      const grid = document.getElementById("core-grid");
+      grid.innerHTML = Object.entries(state.core).map(([key, item]) => {
+        const doneCount = item.milestones.filter(m => m.done).length;
+        const pct = Math.round((doneCount / item.milestones.length) * 100);
+
+        return `
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">${escapeHtml(item.badge)}</span>
+                  <h3 class="text-sm font-bold text-slate-900">${escapeHtml(item.title)}</h3>
+                </div>
+                <button onclick="openAssignmentModal(null, '${key}')" title="Add ${key} Deadline" class="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                </button>
+              </div>
+
+              <div class="w-full bg-slate-100 rounded-full h-1.5 mb-3">
+                <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+              </div>
+
+              <ul class="space-y-2">
+                ${item.milestones.map(m => `
+                  <li class="flex items-start gap-2 text-xs">
+                    <input type="checkbox" ${m.done ? "checked" : ""} onchange="toggleMilestone('${key}', '${m.id}')" class="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+                    <span class="${m.done ? "line-through text-slate-400" : "text-slate-700"}">${escapeHtml(m.text)}</span>
+                  </li>
+                `).join("")}
+              </ul>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] text-slate-500">
+              <span>${doneCount}/${item.milestones.length} milestones complete</span>
+              <span class="font-semibold text-slate-700">${pct}%</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function populateCategorySelects() {
+      const subOptions = state.subjects.map(s => `<option value="${s.id}">${escapeHtml(s.id)}: ${escapeHtml(s.name)} (${s.level})</option>`).join("");
+      document.getElementById("filter-subject-options").innerHTML = subOptions;
+
+      const modalCat = document.getElementById("inp-category");
+      const currentVal = modalCat.value;
+      modalCat.innerHTML = `
+        <optgroup label="6 Subjects">${subOptions}</optgroup>
+        <optgroup label="3 Core">
+          <option value="TOK">Theory of Knowledge (TOK)</option>
+          <option value="EE">Extended Essay (EE)</option>
+          <option value="CAS">CAS</option>
+        </optgroup>
+      `;
+      if (currentVal) modalCat.value = currentVal;
+    }
+
+    function getUrgencyBadge(dueStr, completed) {
+      if (completed) {
+        return `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Completed</span>`;
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const due = new Date(dueStr + "T00:00:00");
+      const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+
+      if (diff < 0) {
+        return `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">Overdue (${Math.abs(diff)}d)</span>`;
+      }
+      if (diff === 0) {
+        return `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">Due Today</span>`;
+      }
+      if (diff <= 3) {
+        return `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Due in ${diff}d</span>`;
+      }
+      if (diff <= 7) {
+        return `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">This Week (${diff}d)</span>`;
+      }
+      return `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">In ${diff}d</span>`;
+    }
+
+    function renderDeadlines() {
+      const search = document.getElementById("search-input").value.toLowerCase().trim();
+      const catFilter = document.getElementById("filter-category").value;
+      const statusFilter = document.getElementById("filter-status").value;
+      const prioFilter = document.getElementById("filter-priority").value;
+
+      let list = [...state.assignments].sort((a, b) => a.due.localeCompare(b.due));
+
+      list = list.filter(item => {
+        if (statusFilter === "PENDING" && item.completed) return false;
+        if (statusFilter === "COMPLETED" && !item.completed) return false;
+        if (prioFilter !== "ALL" && item.priority !== prioFilter) return false;
+
+        if (catFilter === "SUBJECTS_ONLY" && !item.category.startsWith("G")) return false;
+        if (catFilter === "CORE_ONLY" && item.category.startsWith("G")) return false;
+        if (!["ALL", "SUBJECTS_ONLY", "CORE_ONLY"].includes(catFilter) && item.category !== catFilter) return false;
+
+        if (search) {
+          const hay = `${item.title} ${item.notes} ${getCategoryLabel(item.category)}`.toLowerCase();
+          if (!hay.includes(search)) return false;
+        }
+        return true;
+      });
+
+      const container = document.getElementById("deadlines-list");
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="p-10 text-center">
+            <p class="text-sm font-semibold text-slate-700">No deliverables match your current filter.</p>
+            <p class="text-xs text-slate-500 mt-1">Click "+ Add Task" above or adjust your filters.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(item => {
+        const prioDot = item.priority === "High" ? "bg-rose-500" : item.priority === "Medium" ? "bg-amber-400" : "bg-slate-400";
+        return `
+          <div class="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/80 transition">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" ${item.completed ? "checked" : ""} onchange="toggleComplete('${item.id}')" class="mt-1 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-sm font-semibold ${item.completed ? "line-through text-slate-400" : "text-slate-900"}">${escapeHtml(item.title)}</span>
+                  ${getUrgencyBadge(item.due, item.completed)}
+                  <span class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+                    <span class="w-1.5 h-1.5 rounded-full ${prioDot}"></span>
+                    ${escapeHtml(getCategoryLabel(item.category))}
+                  </span>
+                </div>
+                ${item.notes ? `<p class="text-xs text-slate-500 mt-1">${escapeHtml(item.notes)}</p>` : ""}
+                <p class="text-[11px] text-slate-400 mt-1">Due: <strong class="text-slate-600">${escapeHtml(item.due)}</strong> • ${escapeHtml(item.priority)} Priority</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+              ${!item.completed ? `
+                <button onclick="openAiBreakdown('${item.id}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
+                  ✨ AI Breakdown
+                </button>
+              ` : ""}
+              <button onclick="openAssignmentModal('${item.id}')" title="Edit" class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z"/></svg>
+              </button>
+              <button onclick="deleteAssignment('${item.id}')" title="Delete" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Interactions & CRUD
+    function toggleMilestone(coreKey, milestoneId) {
+      const m = state.core[coreKey].milestones.find(x => x.id === milestoneId);
+      if (m) m.done = !m.done;
+      saveState();
+    }
+
+    function toggleComplete(id) {
+      const item = state.assignments.find(a => a.id === id);
+      if (item) item.completed = !item.completed;
+      saveState();
+    }
+
+    function deleteAssignment(id) {
+      const idx = state.assignments.findIndex(a => a.id === id);
+      if (idx === -1) return;
+      lastDeleted = state.assignments[idx];
+      state.assignments.splice(idx, 1);
+      saveState();
+      showToast(`Deleted "${lastDeleted.title}"`);
+    }
+
+    function undoDelete() {
+      if (!lastDeleted) return;
+      state.assignments.push(lastDeleted);
+      lastDeleted = null;
+      document.getElementById("toast").classList.add("hidden");
+      document.getElementById("toast").classList.remove("flex");
+      saveState();
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toast-msg").textContent = msg;
+      toast.classList.remove("hidden");
+      toast.classList.add("flex");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add("hidden");
+        toast.classList.remove("flex");
+      }, 5000);
+    }
+
+    function filterByCategory(catId) {
+      document.getElementById("filter-category").value = catId;
+      renderDeadlines();
+      document.getElementById("deadlines-list").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function toggleSampleData() {
+      if (state.hasSampleData) {
+        state.assignments = state.assignments.filter(a => !a.isSample);
+        state.hasSampleData = false;
+      } else {
+        const freshSamples = JSON.parse(JSON.stringify(DEFAULT_STATE.assignments));
+        state.assignments = [...state.assignments, ...freshSamples];
+        state.hasSampleData = true;
+      }
+      saveState();
+    }
+
+    // Modals
+    function openModal(id) {
+      const el = document.getElementById(id);
+      el.classList.remove("hidden");
+      el.classList.add("flex");
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      el.classList.add("hidden");
+      el.classList.remove("flex");
+    }
+
+    function openAssignmentModal(editId = null, defaultCat = "G1") {
+      populateCategorySelects();
+      const form = document.getElementById("assignment-form");
+      form.reset();
+
+      if (editId) {
+        const item = state.assignments.find(a => a.id === editId);
+        if (!item) return;
+        document.getElementById("modal-title").textContent = "Edit Deliverable";
+        document.getElementById("inp-id").value = item.id;
+        document.getElementById("inp-title").value = item.title;
+        document.getElementById("inp-category").value = item.category;
+        document.getElementById("inp-due").value = item.due;
+        document.getElementById("inp-priority").value = item.priority;
+        document.getElementById("inp-notes").value = item.notes || "";
+      } else {
+        document.getElementById("modal-title").textContent = "Add Assignment / Deadline";
+        document.getElementById("inp-id").value = "";
+        document.getElementById("inp-category").value = defaultCat;
+        document.getElementById("inp-due").value = addDaysISO(7);
+      }
+      openModal("assignment-modal");
+    }
+
+    function saveAssignment(e) {
+      e.preventDefault();
+      const id = document.getElementById("inp-id").value;
+      const payload = {
+        title: document.getElementById("inp-title").value.trim(),
+        category: document.getElementById("inp-category").value,
+        due: document.getElementById("inp-due").value,
+        priority: document.getElementById("inp-priority").value,
+        notes: document.getElementById("inp-notes").value.trim()
+      };
+
+      if (id) {
+        const existing = state.assignments.find(a => a.id === id);
+        if (existing) Object.assign(existing, payload);
+      } else {
+        state.assignments.push({
+          id: "task_" + Date.now(),
+          ...payload,
+          completed: false,
+          isSample: false
+        });
+      }
+      closeModal("assignment-modal");
+      saveState();
+    }
+
+    function openSubjectModal(subId) {
+      const sub = state.subjects.find(s => s.id === subId);
+      if (!sub) return;
+      document.getElementById("sub-id").value = sub.id;
+      document.getElementById("sub-name").value = sub.name;
+      document.getElementById("sub-level").value = sub.level;
+      openModal("subject-modal");
+    }
+
+    function saveSubject(e) {
+      e.preventDefault();
+      const id = document.getElementById("sub-id").value;
+      const sub = state.subjects.find(s => s.id === id);
+      if (sub) {
+        sub.name = document.getElementById("sub-name").value.trim();
+        sub.level = document.getElementById("sub-level").value;
+      }
+      closeModal("subject-modal");
+      saveState();
+    }
+
+    function openApiKeyModal() {
+      document.getElementById("inp-apikey").value = getApiKey();
+      openModal("apikey-modal");
+    }
+
+    function saveApiKey() {
+      const val = document.getElementById("inp-apikey").value.trim();
+      if (val) {
+        localStorage.setItem(API_STORAGE_KEY, val);
+      }
+      closeModal("apikey-modal");
+      updateApiStatusUI();
+    }
+
+    function clearApiKey() {
+      localStorage.removeItem(API_STORAGE_KEY);
+      document.getElementById("inp-apikey").value = "";
+      closeModal("apikey-modal");
+      updateApiStatusUI();
+    }
+
+    // Gemini AI Integration
+    async function callGemini(prompt, expectJson = false) {
+      const key = getApiKey();
+      if (!key) {
+        closeModal("ai-modal");
+        openApiKeyModal();
+        throw new Error("Please enter your Gemini API key first.");
+      }
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`;
+      const body = {
+        contents: [{ parts: [{ text: prompt }] }]
+      };
+      if (expectJson) {
+        body.generationConfig = { responseMimeType: "application/json" };
+      }
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Gemini API Error (${res.status}): ${errText}`);
+      }
+
+      const data = await res.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      if (!expectJson) return text;
+
+      const cleaned = text.replace(/^```json\s*/i, "").replace(/```\s*$/, "").trim();
+      return JSON.parse(cleaned);
+    }
+
+    // Feature 1: AI Deliverable Breakdown
+    async function openAiBreakdown(taskId) {
+      const task = state.assignments.find(a => a.id === taskId);
+      if (!task) return;
+
+      const catLabel = getCategoryLabel(task.category);
+      const todayISO = addDaysISO(0);
+
+      document.getElementById("ai-modal-title").textContent = "✨ AI Rubric-Aligned Breakdown";
+      document.getElementById("ai-modal-subtitle").textContent = `${catLabel} • Due ${task.due}`;
+      document.getElementById("ai-modal-body").innerHTML = `
+        <div class="py-8 text-center text-slate-500 animate-pulse">
+          Analyzing IB requirements for "${escapeHtml(task.title)}"...
+        </div>
+      `;
+      openModal("ai-modal");
+
+      const prompt = `
+        You are an expert International Baccalaureate (IB) Diploma Programme advisor.
+        Break down the following IB assignment into 4 actionable, rubric-aligned sub-steps scheduled between today (${todayISO}) and the final due date (${task.due}).
+        Subject/Core: ${catLabel}
+        Task Title: ${task.title}
+        Notes: ${task.notes || "None"}
+
+        Return ONLY a JSON array of objects, where each object has:
+        - "title": concise sub-step title (string)
+        - "due": YYYY-MM-DD date string between ${todayISO} and ${task.due}
+        - "notes": 1-sentence IB rubric tip for this step (string)
+      `;
+
+      try {
+        const steps = await callGemini(prompt, true);
+        window._pendingBreakdown = { category: task.category, steps };
+
+        document.getElementById("ai-modal-body").innerHTML = `
+          <p class="text-xs text-slate-600">Suggested milestones leading up to <strong>${escapeHtml(task.due)}</strong>:</p>
+          <div class="space-y-2.5">
+            ${steps.map((s, idx) => `
+              <div class="p-3 rounded-xl border border-slate-200 bg-slate-50">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-semibold text-slate-900 text-xs">${idx + 1}. ${escapeHtml(s.title)}</span>
+                  <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-white border border-slate-200 text-indigo-600">${escapeHtml(s.due)}</span>
+                </div>
+                <p class="text-xs text-slate-600 mt-1">${escapeHtml(s.notes)}</p>
+              </div>
+            `).join("")}
+          </div>
+          <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+            <button onclick="closeModal('ai-modal')" class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Close</button>
+            <button onclick="importBreakdownSteps()" class="px-4 py-1.5 text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg shadow-sm">
+              + Add All ${steps.length} Steps to Tracker
+            </button>
+          </div>
+        `;
+      } catch (err) {
+        document.getElementById("ai-modal-body").innerHTML = `<p class="text-xs text-rose-600">${escapeHtml(err.message)}</p>`;
+      }
+    }
+
+    function importBreakdownSteps() {
+      const data = window._pendingBreakdown;
+      if (!data || !Array.isArray(data.steps)) return;
+      data.steps.forEach((s, i) => {
+        state.assignments.push({
+          id: "subtask_" + Date.now() + "_" + i,
+          title: s.title,
+          category: data.category,
+          due: s.due,
+          priority: "Medium",
+          notes: s.notes,
+          completed: false,
+          isSample: false
+        });
+      });
+      closeModal("ai-modal");
+      saveState();
+      showToast(`Added ${data.steps.length} sub-steps to your tracker`);
+    }
+
+    // Feature 2: AI Weekly Study Plan
+    async function openAiStudyPlan() {
+      const pending = state.assignments.filter(a => !a.completed).sort((a, b) => a.due.localeCompare(b.due));
+      document.getElementById("ai-modal-title").textContent = "✨ Personalized 7-Day IB Study Plan";
+      document.getElementById("ai-modal-subtitle").textContent = `Prioritized around your ${pending.length} pending deliverables & HL/SL load`;
+      document.getElementById("ai-modal-body").innerHTML = `
+        <div class="py-8 text-center text-slate-500 animate-pulse">
+          Building your balanced HL/SL &amp; Core weekly schedule...
+        </div>
+      `;
+      openModal("ai-modal");
+
+      const subjectsSummary = state.subjects.map(s => `${s.id}: ${s.name} (${s.level})`).join(", ");
+      const tasksSummary = pending.length
+        ? pending.map(t => `- [${getCategoryLabel(t.category)}] ${t.title} (Due: ${t.due}, Priority: ${t.priority})`).join("\n")
+        : "No pending tasks logged yet.";
+
+      const prompt = `
+        You are an IB Diploma Programme study coach. Today is ${addDaysISO(0)}.
+        Student's 6 Subjects: ${subjectsSummary}
+        Pending Deadlines:
+        ${tasksSummary}
+
+        Create a concise, realistic 7-day study plan (Day 1 to Day 7) prioritizing urgent deadlines and Higher Level (HL) subjects while leaving room for Core (TOK/EE/CAS).
+        Format your response using clean HTML tags (<div class="space-y-3">, <h4>, <ul class="list-disc pl-5 text-xs space-y-1">, <strong>) with no markdown code fences.
+      `;
+
+      try {
+        const htmlPlan = await callGemini(prompt, false);
+        const cleaned = htmlPlan.replace(/^```html\s*/i, "").replace(/```\s*$/, "");
+        document.getElementById("ai-modal-body").innerHTML = `
+          <div class="prose prose-sm max-w-none text-slate-700 space-y-3">${cleaned}</div>
+          <div class="flex justify-end pt-3 border-t border-slate-100">
+            <button onclick="closeModal('ai-modal')" class="px-4 py-1.5 text-xs font-semibold bg-slate-900 text-white rounded-lg">Done</button>
+          </div>
+        `;
+      } catch (err) {
+        document.getElementById("ai-modal-body").innerHTML = `<p class="text-xs text-rose-600">${escapeHtml(err.message)}</p>`;
+      }
+    }
+
+    // Feature 3: Syllabus / Teacher Note Deadline Extractor
+    function openSyllabusExtractor() {
+      document.getElementById("ai-modal-title").textContent = "✨ Extract Deadlines from Syllabus or Notes";
+      document.getElementById("ai-modal-subtitle").textContent = "Paste an email, ManageBac announcement, or syllabus schedule";
+      document.getElementById("ai-modal-body").innerHTML = `
+        <textarea id="syllabus-raw-text" rows="6" placeholder="Example: Reminder that Physics IA first drafts are due Nov 24. Also, TOK essay outlines must be uploaded to ManageBac by Dec 2..." class="w-full p-3 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        <div class="flex justify-end gap-2">
+          <button onclick="closeModal('ai-modal')" class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+          <button onclick="runSyllabusExtraction()" class="px-4 py-1.5 text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg shadow-sm">Extract &amp; Import</button>
+        </div>
+      `;
+      openModal("ai-modal");
+    }
+
+    async function runSyllabusExtraction() {
+      const rawText = document.getElementById("syllabus-raw-text").value.trim();
+      if (!rawText) return;
+
+      document.getElementById("ai-modal-body").innerHTML = `
+        <div class="py-8 text-center text-slate-500 animate-pulse">Extracting dates and matching to your IB subjects...</div>
+      `;
+
+      const subjectsMap = state.subjects.map(s => `${s.id} = ${s.name} (${s.level})`).join(", ");
+      const prompt = `
+        Extract all assignments, exams, or deadlines from the text below. Today's date is ${addDaysISO(0)}.
+        Match each item to the closest category ID from: ${subjectsMap}, TOK, EE, CAS (default to "G1" if unclear).
+
+        Text:
+        """${rawText}"""
+
+        Return ONLY a JSON array of objects with:
+        - "title": string
+        - "category": one of ["G1","G2","G3","G4","G5","G6","TOK","EE","CAS"]
+        - "due": YYYY-MM-DD
+        - "priority": "High" | "Medium" | "Low"
+        - "notes": string
+      `;
+
+      try {
+        const extracted = await callGemini(prompt, true);
+        if (!Array.isArray(extracted) || extracted.length === 0) {
+          document.getElementById("ai-modal-body").innerHTML = `<p class="text-xs text-slate-600">No clear deadlines were found in that text.</p>`;
+          return;
+        }
+        extracted.forEach((item, i) => {
+          state.assignments.push({
+            id: "ext_" + Date.now() + "_" + i,
+            title: item.title || "Untitled Deliverable",
+            category: item.category || "G1",
+            due: item.due || addDaysISO(7),
+            priority: ["High", "Medium", "Low"].includes(item.priority) ? item.priority : "Medium",
+            notes: item.notes || "",
+            completed: false,
+            isSample: false
+          });
+        });
+        closeModal("ai-modal");
+        saveState();
+        showToast(`Imported ${extracted.length} deadlines!`);
+      } catch (err) {
+        document.getElementById("ai-modal-body").innerHTML = `<p class="text-xs text-rose-600">${escapeHtml(err.message)}</p>`;
+      }
+    }
+
+    // Initialize
+    renderAll();
+  </script>
+</body>
+</html>
+
+```
+
+To enable the AI features (**AI Breakdown**, **AI Study Plan**, and **Extract Deadlines**), open the saved `index.html` file in your browser and click the **API Key** button in the top-right corner to paste your free Gemini API key (or paste it directly into `DEFAULT_API_KEY` near the top of the `<script>` tag).
